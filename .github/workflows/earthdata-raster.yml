@@ -1,0 +1,26 @@
+name: Earthdata Raster Smoke Test
+on:
+  push:
+    paths:
+      - 'earthdata-raster/**'
+      - '.github/workflows/earthdata-raster.yml'
+  workflow_dispatch:
+jobs:
+  gdalsmoke:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: earthdata-raster
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: earthdata-raster/requirements.txt
+      - name: Install GDAL raster environment
+        run: python -m pip install -r requirements.txt
+      - name: Test B04/B08/B11/Fmask clipping
+        run: python -m unittest discover -s tests -v
+      - name: Build Docker
+        run: docker build --tag vnview-earthdata:test .
